@@ -1,0 +1,15 @@
+{
+  "name": "shielded-badges-circuits",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "shielded_badges_circuits_bg.wasm",
+    "shielded_badges_circuits.js",
+    "shielded_badges_circuits.d.ts"
+  ],
+  "main": "shielded_badges_circuits.js",
+  "types": "shielded_badges_circuits.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
