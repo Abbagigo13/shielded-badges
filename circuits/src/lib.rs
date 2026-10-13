@@ -1,6 +1,7 @@
 use wasm_bindgen::prelude::*;
 
 pub mod mul_demo;
+pub mod nullifier;
 
 #[wasm_bindgen]
 pub fn hello() -> String {
