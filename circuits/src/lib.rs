@@ -1,5 +1,7 @@
 use wasm_bindgen::prelude::*;
 
+pub mod mul_demo;
+
 #[wasm_bindgen]
 pub fn hello() -> String {
     "ShieldedBadges circuit crate is alive".to_string()
