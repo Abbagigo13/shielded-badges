@@ -1,5 +1,6 @@
 use wasm_bindgen::prelude::*;
 
+pub mod badge;
 pub mod merkle;
 pub mod mul_demo;
 pub mod nullifier;
