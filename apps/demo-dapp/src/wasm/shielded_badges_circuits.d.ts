@@ -1,17 +1,56 @@
 /* tslint:disable */
 /* eslint-disable */
 
+/**
+ * Holds the proving parameters and keys, so the slow setup only runs once per page.
+ */
+export class BadgeProver {
+    free(): void;
+    [Symbol.dispose](): void;
+    constructor();
+    /**
+     * Creates a proof. Returns it as a hex string.
+     */
+    prove(secret_hex: string, badge_type: string, value: string, threshold: string, scope: string, root_hex: string, siblings_csv: string, bits_csv: string): string;
+    /**
+     * Checks a proof against the public inputs. Returns true or false.
+     */
+    verify(proof_hex: string, root_hex: string, badge_type: string, threshold: string, scope: string, nullifier_hex: string): boolean;
+}
+
 export function add(a: number, b: number): number;
 
+/**
+ * Builds the demo issuer tree: 16 credentials, slot `index` belongs to the holder.
+ * Returns "root_hex;sibling0,sibling1,sibling2,sibling3;bit0,bit1,bit2,bit3".
+ */
+export function demo_tree(secret_hex: string, badge_type: string, value: string, index: number): string;
+
 export function hello(): string;
+
+/**
+ * nullifier = Poseidon(secret, badge_type, scope), as hex.
+ */
+export function nullifier_hex(secret_hex: string, badge_type: string, scope: string): string;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly __wbg_badgeprover_free: (a: number, b: number) => void;
     readonly add: (a: number, b: number) => number;
+    readonly badgeprover_new: () => [number, number, number];
+    readonly badgeprover_prove: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: number, n: number, o: number, p: number, q: number) => [number, number, number, number];
+    readonly badgeprover_verify: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: number) => [number, number, number];
+    readonly demo_tree: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
     readonly hello: () => [number, number];
+    readonly nullifier_hex: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
+    readonly __wbindgen_exn_store: (a: number) => void;
+    readonly __externref_table_alloc: () => number;
     readonly __wbindgen_externrefs: WebAssembly.Table;
+    readonly __externref_table_dealloc: (a: number) => void;
+    readonly __wbindgen_malloc: (a: number, b: number) => number;
+    readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
     readonly __wbindgen_free: (a: number, b: number, c: number) => void;
     readonly __wbindgen_start: () => void;
 }
