@@ -112,7 +112,7 @@ function App() {
 
     try {
       const secret = randomSecretHex();
-      add(`Random secret generated (stays in this page): ${short(secret)}`);
+      add("Random secret generated in this page. It is never displayed or sent anywhere.");
 
       const treeReply = need(await call("demo_tree", [secret, BADGE, VALUE, INDEX]));
       const [root, siblings, bits] = String(treeReply.result).split(";");
