@@ -5,6 +5,7 @@ pub mod merkle;
 pub mod mul_demo;
 pub mod nullifier;
 pub mod threshold;
+pub mod wasm_api;
 
 #[wasm_bindgen]
 pub fn hello() -> String {
