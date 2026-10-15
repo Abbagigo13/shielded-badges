@@ -1,0 +1,117 @@
+/* readability: dark backdrop behind the landing text */
+.landing-content {
+  background: linear-gradient(
+    to top,
+    rgba(2, 10, 6, 0.96) 0%,
+    rgba(2, 10, 6, 0.88) 30%,
+    transparent 48%
+  );
+}
+
+/* ---------- desk layout ---------- */
+.grid {
+  width: min(1280px, 100%);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.grid .window {
+  width: auto;
+}
+
+.how {
+  width: min(1280px, 100%);
+  margin: 0 auto 16px;
+}
+
+.busy {
+  margin: 0 0 12px;
+}
+
+.label {
+  display: block;
+  margin: 12px 0 4px;
+  font-size: 12px;
+  color: var(--dim);
+  letter-spacing: 0.12em;
+}
+
+.field {
+  width: 100%;
+  font: inherit;
+  color: var(--green);
+  background: #010604;
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+}
+
+.field:focus {
+  outline: 1px solid var(--green);
+}
+
+.field:disabled {
+  opacity: 0.5;
+}
+
+.btn.small {
+  padding: 6px 12px;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.panel {
+  border: 1px solid var(--line);
+  padding: 10px;
+  margin: 12px 0;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.panel .head {
+  color: var(--dim);
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  margin-bottom: 6px;
+}
+
+.private {
+  color: #ffb454;
+}
+
+.note {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--dim);
+  overflow-wrap: anywhere;
+}
+
+.line-ok {
+  color: var(--green);
+}
+
+.line-blocked {
+  color: #ffb454;
+}
+
+.line-info {
+  color: var(--dim);
+}
+
+.results {
+  margin-top: 12px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.results div {
+  margin-bottom: 6px;
+}
