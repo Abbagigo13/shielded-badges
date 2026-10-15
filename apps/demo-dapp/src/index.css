@@ -1,111 +1,253 @@
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  --bg: #020a06;
+  --panel: #03120a;
+  --green: #4ff0a0;
+  --dim: #2f9d6a;
+  --line: #1f7a50;
+  --link: #8b7cf6;
+  --warn: #ff6b6b;
+  color-scheme: dark;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
+* {
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
 body {
-  margin: 0;
+  background: var(--bg);
+  color: var(--green);
+  font-family: "IBM Plex Mono", "Cascadia Mono", Consolas, "Courier New", monospace;
+  font-size: 14px;
+  letter-spacing: 0.04em;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+/* CRT scanlines over everything */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.18) 0,
+    rgba(0, 0, 0, 0.18) 1px,
+    transparent 1px,
+    transparent 3px
+  );
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
+
+/* ---------- landing ---------- */
+.landing {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 40%, #04170d 0%, var(--bg) 70%);
+}
+
+.landing svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.landing-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 8vh;
+  text-align: center;
+  gap: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(26px, 6vw, 60px);
+  letter-spacing: 0.18em;
+  text-shadow: 0 0 18px rgba(79, 240, 160, 0.5);
+}
+
+.tag {
+  margin: 0;
+  max-width: 640px;
+  padding: 0 16px;
+  color: var(--dim);
+}
+
+.status {
+  font-size: 12px;
+  color: var(--dim);
+}
+
+.btn {
+  font: inherit;
+  color: var(--bg);
+  background: var(--green);
+  border: 1px solid var(--green);
+  padding: 10px 24px;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+}
+
+.btn:hover:not(:disabled) {
+  box-shadow: 0 0 14px var(--green);
+}
+
+.btn:disabled {
+  background: transparent;
+  color: var(--dim);
+  border-color: var(--line);
+  cursor: not-allowed;
+}
+
+.ring {
+  transform-origin: 400px 300px;
+  animation: spin linear infinite;
+}
+
+.ring.rev {
+  animation-direction: reverse;
+}
+
+.rain {
+  fill: var(--dim);
+  opacity: 0.35;
+  font-size: 14px;
+  animation: fall linear infinite;
+}
+
+@keyframes fall {
+  from {
+    transform: translateY(-700px);
+  }
+  to {
+    transform: translateY(700px);
+  }
+}
+
+.shield {
+  animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    filter: drop-shadow(0 0 10px #4ff0a0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ring,
+  .rain,
+  .shield {
+    animation: none;
+  }
+}
+
+/* ---------- desktop ---------- */
+.desk {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.desk-main {
+  flex: 1;
+  overflow: auto;
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.window {
+  width: min(900px, 100%);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow: 0 0 24px rgba(79, 240, 160, 0.08);
+}
+
+.titlebar {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 10px;
+  color: var(--bg);
+  font-weight: bold;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  background: repeating-linear-gradient(0deg, #4ff0a0 0, #4ff0a0 2px, #2a9b68 2px, #2a9b68 4px);
+}
+
+.window-body {
+  padding: 20px;
+}
+
+.window h1 {
   margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
+  font-size: 20px;
+  letter-spacing: 0.12em;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+.muted {
+  color: var(--dim);
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+.log {
+  margin-top: 16px;
+  min-height: 120px;
+  white-space: pre-wrap;
+}
+
+.fail {
+  color: var(--warn);
+}
+
+.taskbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--dim);
+  border-top: 1px solid var(--line);
+  background: #010604;
+}
+
+.start {
+  padding: 2px 12px;
+  font-weight: bold;
+  letter-spacing: 0.2em;
+  color: var(--bg);
+  background: var(--green);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 8px;
+  vertical-align: middle;
+  border: 2px solid var(--green);
+  animation: spin 1s linear infinite;
 }

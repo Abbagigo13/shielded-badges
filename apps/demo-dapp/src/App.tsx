@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import Landing from "./components/Landing";
 
 const BADGE = "1";
 const VALUE = "750";
@@ -24,6 +25,7 @@ function App() {
   const pendingRef = useRef(new Map<number, (r: Reply) => void>());
   const nextIdRef = useRef(1);
 
+  const [screen, setScreen] = useState<"landing" | "desk">("landing");
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [bootMs, setBootMs] = useState<number | null>(null);
   const [busyLabel, setBusyLabel] = useState<string | null>(null);
@@ -164,54 +166,76 @@ function App() {
     }
   }
 
+  if (screen === "landing") {
+    return <Landing status={status} seconds={seconds} onEnter={() => setScreen("desk")} />;
+  }
+
+  const statusText =
+    status === "loading"
+      ? `PROVER: LOADING ${seconds.toFixed(1)} s`
+      : status === "ready"
+        ? `PROVER: READY${bootMs !== null ? ` (setup ${ms(bootMs)})` : ""}`
+        : "PROVER: ERROR";
+
   return (
-    <div style={{ fontFamily: "monospace", padding: 32, maxWidth: 900, margin: "0 auto" }}>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    <div className="desk">
+      <div className="desk-main">
+        <div className="window">
+          <div className="titlebar">
+            <span>PROOF DEMO</span>
+            <span>X</span>
+          </div>
+          <div className="window-body">
+            <h1>ShieldedBadges proof demo</h1>
+            <p className="muted">
+              Proves, in your browser, that a credential in the issuer&apos;s tree has a value
+              of at least {THRESHOLD}, without revealing the secret, the value or which leaf
+              is yours.
+            </p>
+            <p className="muted">
+              Demo note: the issuer is simulated, and the prover and verifier run in the same
+              page. In real use they would be separate parties.
+            </p>
 
-      <h1>ShieldedBadges proof demo</h1>
-      <p>
-        Proves, in your browser, that a credential in the issuer&apos;s tree has a value of at
-        least {THRESHOLD}, without revealing the secret, the value or which leaf is yours.
-      </p>
-      <p>
-        Demo note: the prover and the verifier run in the same page here. In real use they
-        would be separate parties.
-      </p>
+            {busyLabel && (
+              <p>
+                <span className="spinner" />
+                {busyLabel}... {seconds.toFixed(1)} s
+              </p>
+            )}
 
-      {(status === "loading" || busyLabel) && (
-        <div style={{ display: "flex", alignItems: "center", gap: 16, margin: "16px 0" }}>
-          <div
-            style={{
-              width: 24,
-              height: 24,
-              border: "3px solid #4ff0a0",
-              animation: "spin 1s linear infinite",
-            }}
-          />
-          <div>
-            {status === "loading" ? "LOADING HALO2 PROVER..." : `${busyLabel}...`}{" "}
-            {seconds.toFixed(1)} s
+            <button
+              className="btn"
+              onClick={runDemo}
+              disabled={status !== "ready" || running}
+            >
+              {status === "loading"
+                ? "LOADING PROVER..."
+                : running
+                  ? "RUNNING..."
+                  : "RUN PROOF DEMO"}
+            </button>
+
+            <div className="log">
+              {log.map((line, i) => (
+                <div
+                  key={i}
+                  className={line.startsWith("FAIL") || line.startsWith("ERROR") ? "fail" : ""}
+                >
+                  {line}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      )}
+      </div>
 
-      {status === "ready" && bootMs !== null && (
-        <p>Prover ready (setup took {ms(bootMs)}, off the main thread).</p>
-      )}
-
-      <button
-        onClick={runDemo}
-        disabled={status !== "ready" || running}
-        style={{ padding: "8px 16px" }}
-      >
-        {status === "loading"
-          ? "Loading prover..."
-          : running
-            ? "Running..."
-            : "Run proof demo"}
-      </button>
-
-      <pre style={{ marginTop: 24, whiteSpace: "pre-wrap" }}>{log.join("\n")}</pre>
+      <div className="taskbar">
+        <span className="start">START</span>
+        <span>PROOF DEMO</span>
+        <span className="spacer" />
+        <span>{statusText}</span>
+      </div>
     </div>
   );
 }
