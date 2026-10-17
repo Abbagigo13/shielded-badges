@@ -7,6 +7,10 @@ const BADGE = "1";
 const INDEX = 5;
 const MAX = 1_000_000;
 
+// Zcash mainnet builds one block every 75 seconds, so 1152 blocks is about one day.
+// Same rule as zcashEpoch() in @shielded-badges/core.
+const BLOCKS_PER_EPOCH = 1152;
+
 type Reply = { id: number; ok: boolean; result?: unknown; error?: string; ms: number };
 type Issued = { value: number; root: string; siblings: string; bits: string };
 type Sent = {
@@ -71,6 +75,9 @@ function App() {
   const [valueInput, setValueInput] = useState("750");
   const [thresholdInput, setThresholdInput] = useState("500");
   const [scopeInput, setScopeInput] = useState("99");
+  const [zcash, setZcash] = useState<{ tip: number; epoch: number } | null>(null);
+  const [zcashNote, setZcashNote] = useState("");
+  const [requireEpoch, setRequireEpoch] = useState(false);
 
   const [issued, setIssued] = useState<Issued | null>(null);
   const [sent, setSent] = useState<Sent | null>(null);
@@ -215,10 +222,45 @@ function App() {
       );
     });
 
+  // ----- optional: Zcash epoch as scope -----
+  // Asks this site's own server (/api/zcash-tip) for the Zcash mainnet block height.
+  // Public data only. Nothing about the holder is sent.
+  const loadZcashEpoch = async () => {
+    setZcashNote("Reading the Zcash block height...");
+    try {
+      const res = await fetch("/api/zcash-tip", { headers: { accept: "application/json" } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data: unknown = await res.json();
+      const tip = (data as { tip?: unknown } | null)?.tip;
+      if (typeof tip !== "number" || !Number.isSafeInteger(tip) || tip < 0) {
+        throw new Error("unexpected answer");
+      }
+      const epoch = Math.floor(tip / BLOCKS_PER_EPOCH);
+      setZcash({ tip, epoch });
+      setScopeInput(String(epoch));
+      setZcashNote(
+        `Zcash mainnet tip: block ${tip.toLocaleString("en-US")}. Epoch ${epoch} (${BLOCKS_PER_EPOCH} blocks, about one day). Scope set to ${epoch}.`,
+      );
+    } catch (e: unknown) {
+      setZcash(null);
+      setRequireEpoch(false);
+      setZcashNote(
+        `Could not read the Zcash block height (${String(e)}). The rest of the demo works without it. The local dev server has no backend for this button.`,
+      );
+    }
+  };
+
   // ----- verifier -----
   const verifyProof = () =>
     withBusy("Verifying", async () => {
       if (!sent) return;
+      if (requireEpoch && zcash && sent.scope !== zcash.epoch) {
+        addLine(
+          "blocked",
+          `REJECTED: this verifier only accepts the current Zcash epoch (${zcash.epoch}) as scope, but the proof is for scope ${sent.scope}.`,
+        );
+        return;
+      }
       const v = await verifyOnce(sent.proof, sent.root, sent.threshold, sent.scope, sent.nullifier);
       if (!v.valid) {
         addLine(
@@ -296,7 +338,8 @@ function App() {
                 1. Issuer: set a credential value and issue it. 2. Holder: set a threshold and
                 create a proof. 3. Verifier: verify it, then try the attack buttons. Demo
                 notes: the issuer is simulated, the prover and verifier run in this one page,
-                and there is no connection to the Zcash network. The proof uses Halo2, the
+                and there is no wallet or shielded-data link to Zcash. One optional button
+                reads the public Zcash block height. The proof uses Halo2, the
                 Pasta curves and Poseidon, the same primitives family as Zcash Orchard.
               </div>
             </div>
@@ -374,6 +417,16 @@ function App() {
                 disabled={busy}
               />
               <div className="btn-row">
+                <button className="btn small" onClick={loadZcashEpoch} disabled={busy}>
+                  USE ZCASH EPOCH AS SCOPE
+                </button>
+              </div>
+              <div className="muted" style={{ fontSize: 12 }}>
+                Optional. Reads the public Zcash block height through this site&apos;s own server.
+                No keys, no addresses.
+              </div>
+              {zcashNote && <div className="note">{zcashNote}</div>}
+              <div className="btn-row">
                 <button
                   className="btn small"
                   onClick={createProof}
@@ -404,6 +457,17 @@ function App() {
                 </div>
               ) : (
                 <div className="panel muted">Waiting for a proof from the holder.</div>
+              )}
+              {zcash && (
+                <label className="label" style={{ display: "block" }}>
+                  <input
+                    type="checkbox"
+                    checked={requireEpoch}
+                    onChange={(e) => setRequireEpoch(e.target.checked)}
+                    disabled={busy}
+                  />{" "}
+                  REQUIRE SCOPE = CURRENT ZCASH EPOCH ({zcash.epoch})
+                </label>
               )}
               <div className="btn-row">
                 <button className="btn small" onClick={verifyProof} disabled={!sent || busy}>

@@ -23,7 +23,7 @@ generated and verified entirely inside the browser.
 | Poseidon hashing, Merkle membership (4 levels), a 64-bit range check, and a scoped nullifier | The demo issuer is handed the holder's secret to build the tree leaf. A real issuer would receive only `Poseidon(secret)`. |
 | Rejection of replayed, inflated, wrong-threshold and tampered proofs (see Tests) | Prover and verifier run in the same page. |
 | Double-claim blocking through a nullifier registry | The nullifier registry lives in browser memory only. |
-| A typed TypeScript SDK (`packages/core`) | There is **no connection to the Zcash network** (see below). |
+| A typed TypeScript SDK (`packages/core`) | No wallet, keys or shielded data are used. One optional button reads the public Zcash block height (see below). |
 
 ---
 
@@ -59,7 +59,10 @@ statement 2, so a holder cannot claim a bigger value than the issuer issued.
 - The verifier does learn the exact threshold that was proven and the scope it was proven for.
 - In the demo app the secret is made with `crypto.getRandomValues`, kept in memory, never
   displayed and never sent anywhere. After the page and its Wasm file have loaded, the app makes
-  no network requests. You can check this in your browser's Network tab.
+  no network requests, except when you click the optional **Use Zcash epoch as scope** button.
+  That button asks this site's own server for the Zcash block height. The browser never
+  contacts a third party, and nothing about the holder is sent. You can check this in your
+  browser's Network tab.
 
 ---
 
@@ -72,9 +75,33 @@ The proof uses the same family of building blocks as Zcash Orchard:
 - The Poseidon hash chip from `halo2_gadgets`, using the `P128Pow5T3` specification, which the
   library's own tests import under the name `OrchardNullifier`
 
-**This project does not talk to the Zcash network.** It does not read the chain, scan notes,
-use a wallet, or verify anything on-chain. Zcash has no general smart contracts, so proofs are
+**The only live link to Zcash is one optional, read-only call for the public block height**
+(see the next section). The project does not scan notes, use a wallet, handle keys or
+addresses, or verify anything on-chain. Zcash has no general smart contracts, so proofs are
 verified off-chain by the verifier application.
+
+### Optional: Zcash epoch as scope
+
+Zcash mainnet targets one block every 75 seconds, so 1152 blocks is about one day. In the demo
+the holder can click **Use Zcash epoch as scope**. The page asks this site's own server
+(`apps/demo-dapp/api/zcash-tip.js`) for the current block height and sets
+`scope = floor(height / 1152)`. The verifier window then offers a checkbox,
+**Require scope = current Zcash epoch**.
+
+The result is a verifier that allows **one claim per day**: the nullifier changes every epoch,
+so a holder can claim again tomorrow, and claims on different days cannot be linked.
+
+How the height is read:
+
+- The server function asks the public CipherScan explorer API
+  (`api.mainnet.cipherscan.app`) about one fixed old block. The explorer reports how many blocks
+  have been built on top of it, so the tip is that block's height plus its confirmations, minus one.
+- The function refuses an answer that does not match the time that has passed (within 10%).
+- Only public chain data is requested. No keys, no addresses, no user data.
+
+What this is not: it is trusted to one community API, not verified against a Zcash node, and the
+demo verifier uses the epoch it loaded earlier instead of reading the chain itself. A real
+verifier should compute the current epoch on its own.
 
 ### Zcash integration ideas (not built)
 
@@ -122,10 +149,15 @@ API. Examples of what they check:
 
 **SDK** (`packages/core`):
 
-- 13 unit tests with a fake backend: argument order, input validation, the secret never leaving
-  the holder, replay blocking, and malformed input never reaching the prover
+- 16 unit tests with a fake backend: argument order, input validation, the secret never leaving
+  the holder, replay blocking, malformed input never reaching the prover, and the Zcash epoch
+  helper
 - 1 end-to-end test that runs the real Halo2 prover from Node through the SDK, including the
   attack cases
+
+**Zcash height endpoint** (`apps/demo-dapp/test`): 5 tests with a faked upstream: the tip
+calculation, an answer that fails the time check, malformed answers, upstream errors, and
+non-GET requests. The live call to the explorer is not part of the automated tests.
 
 The circuits have **not** had an independent security review. Treat this as a hackathon
 prototype.
@@ -145,6 +177,7 @@ circuits/            Rust crate: Halo2 circuits and the Wasm API
   pkg/                 generated Wasm package (wasm-pack output)
 packages/core/       TypeScript SDK (@shielded-badges/core), source only
 apps/demo-dapp/      React + Vite demo: landing page and Issuer / Holder / Verifier desk
+  api/zcash-tip.js     serverless function that reads the Zcash block height (Vercel)
 ```
 
 ---
@@ -158,6 +191,10 @@ cd apps/demo-dapp
 npm install
 npm run dev
 ```
+
+The Zcash epoch button needs the serverless function, so it works on the deployed site but not
+on `npm run dev`. Locally it shows a short error and the rest of the demo keeps working.
+To test the function's logic: `node --test test/zcash-tip.test.js`.
 
 **SDK tests** (Node 22.18 or newer; no install needed)
 
@@ -175,7 +212,7 @@ cd circuits
 cargo test --release -- --nocapture
 ```
 
-**Rebuild the Wasm package
+### Rebuild the Wasm package
 
 ```bash
 cd circuits
@@ -230,7 +267,8 @@ hand. Moving the demo app onto the SDK is not done yet.
 - Each page runs the setup itself. There is no serialized verifying key yet.
 - The tree depth is fixed at 4 (16 credentials). Values and thresholds must fit in 64 bits.
 - No independent security review.
-- No Zcash network integration (see above).
+- The Zcash link is one optional, read-only height lookup through a single community API. There is no
+  wallet, key, note-scanning or on-chain verification.
 
 ---
 

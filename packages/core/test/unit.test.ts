@@ -7,7 +7,10 @@ import {
   createVerifier,
   generateSecret,
   isFieldHex,
+  parseZcashTip,
   toU64String,
+  ZCASH_BLOCKS_PER_DAY,
+  zcashEpoch,
 } from "../src/index.ts";
 import type { Backend, Method, ProofBundle, ProverReply, WasmApi } from "../src/index.ts";
 
@@ -227,4 +230,27 @@ test("dispatcher routes calls, initialises once and reports errors", async () =>
   const unknown = await dispatch({ id: 8, method: "nope" as Method, args: [] });
   assert.equal(unknown.ok, false);
   assert.equal(unknown.id, 8);
+});
+
+test("zcashEpoch groups heights into 1152-block epochs", () => {
+  assert.equal(ZCASH_BLOCKS_PER_DAY, 1152);
+  assert.equal(zcashEpoch(0), 0);
+  assert.equal(zcashEpoch(1151), 0);
+  assert.equal(zcashEpoch(1152), 1);
+  assert.equal(zcashEpoch(3_520_107), Math.floor(3_520_107 / 1152));
+  assert.equal(zcashEpoch(100, 10), 10);
+});
+
+test("zcashEpoch rejects bad input", () => {
+  assert.throws(() => zcashEpoch(-1), RangeError);
+  assert.throws(() => zcashEpoch(1.5), RangeError);
+  assert.throws(() => zcashEpoch(Number.NaN), RangeError);
+  assert.throws(() => zcashEpoch(10, 0), RangeError);
+});
+
+test("parseZcashTip accepts a good answer and rejects anything else", () => {
+  assert.deepEqual(parseZcashTip({ tip: 2304, source: "x" }), { tip: 2304, epoch: 2 });
+  for (const bad of [null, undefined, {}, { tip: "2304" }, { tip: -1 }, { tip: 1.5 }, { tip: Number.NaN }, "tip", []]) {
+    assert.throws(() => parseZcashTip(bad), TypeError, JSON.stringify(bad));
+  }
 });
